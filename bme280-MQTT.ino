@@ -14,15 +14,13 @@
 #include <WiFiUdp.h>
 #include <myConfig.h>
 
-#define MQTT_HOST IPAddress(192, 168, 0, 109)
+#define MQTT_HOST IPAddress(192, 168, 12, 103)
 #define MQTT_PORT 1883
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 // MQTT Topics
-#define MQTT_ESP8266_A "esp/esp8266_A"
-//#define MQTT_PUB_HUM "esp/bme280/humidity"
-//#define MQTT_PUB_PRES "esp/bme280/pressure"
+#define TOPIC_BME280_A "BME280_A/values"
 
 // Define NTP Client to get time
 WiFiUDP ntpUDP;
@@ -36,14 +34,13 @@ WiFiEventHandler wifiDisconnectHandler;
 Ticker wifiReconnectTimer;
 Adafruit_BME280 bme; // I2C
 
-// Variables to hold sensor readingsa mirada de juli
+// Variables to hold sensor readings
 float temp;
 float hum;
 float pres;
 
 unsigned long previousMillis = 0;   // Stores last time temperature was published
 const long interval = 1000*60*1;   // Interval at which to publish sensor readings
-//const long interval = 1000;   // Interval at which to publish sensor readings
 
 void connectToWifi() {
   Serial.println("Connecting to Wi-Fi...");
@@ -117,14 +114,13 @@ void setup() {
   // GMT 0 = 0
   timeClient.setTimeOffset(0);
 
-//  mqttClient.onConnect(onMqttConnect);
-//  mqttClient.onDisconnect(onMqttDisconnect);
-//  mqttClient.onPublish(onMqttPublish);
-// mqttClient.setServer(MQTT_HOST, MQTT_PORT);
+  mqttClient.onConnect(onMqttConnect);
+  mqttClient.onDisconnect(onMqttDisconnect);
+  mqttClient.onPublish(onMqttPublish);
+  mqttClient.setServer(MQTT_HOST, MQTT_PORT);
 
   // If your broker requires authentication (username and password), set them below
-  //mqttClient.setCredentials("REPlACE_WITH_YOUR_USER", "REPLACE_WITH_YOUR_PASSWORD");
-
+  mqttClient.setCredentials(MQTT_USER, MQTT_PASS);
 
   bool status;
   status = bme.begin(0x76);  
@@ -146,14 +142,14 @@ void loop() {
     previousMillis = currentMillis;
     // New BME280 sensor readings
     temp = bme.readTemperature();
-    hum = bme.readHumidity();
+    hum  = bme.readHumidity();
     pres = bme.readPressure()/100.0F;
     
     char buffer[170];
     bmetoJson(buffer,epochTime, temp, hum, pres);
-    //uint16_t packetIdPub1 = mqttClient.publish(MQTT_ESP8266_A, 1, true, buffer); 
+    uint16_t packetIdPub1 = mqttClient.publish(TOPIC_BME280_A, 1, true, buffer); 
                                
-    //Serial.printf("Publishing on topic %s at QoS 1, packetId: %i ", MQTT_ESP8266_A, packetIdPub1);
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i ", TOPIC_BME280_A, packetIdPub1);
     Serial.printf("Message: %s \n", buffer);
   }
 }
