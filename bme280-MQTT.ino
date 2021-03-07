@@ -18,7 +18,7 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 // MQTT Topics
-#define TOPIC "esp8266_B/bme280/values"
+#define TOPIC "esp8266_A/bme280/values"
 
 // Define NTP Client to get time
 WiFiUDP ntpUDP;
