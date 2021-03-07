@@ -1,5 +1,3 @@
-
-
 //https://randomnerdtutorials.com/esp8266-nodemcu-mqtt-publish-bme280-arduino/
 //https://arduinojson.org/
 
@@ -20,7 +18,7 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 // MQTT Topics
-#define TOPIC_BME280_A "BME280_A/values"
+#define TOPIC "esp8266_B/bme280/values"
 
 // Define NTP Client to get time
 WiFiUDP ntpUDP;
@@ -86,7 +84,7 @@ void onMqttPublish(uint16_t packetId) {
 
 void bmetoJson(char *buffer, int epochtime, float temp, float hum, float pres){
   StaticJsonDocument<170> doc;
-  doc["sensor"] = "esp8266_A/bme280";
+  doc["sensor"] = TOPIC;
   doc["timestamp"] = epochtime; 
   JsonArray data = doc.createNestedArray("data"); 
   JsonObject data_0 = data.createNestedObject();
@@ -147,9 +145,9 @@ void loop() {
     
     char buffer[170];
     bmetoJson(buffer,epochTime, temp, hum, pres);
-    uint16_t packetIdPub1 = mqttClient.publish(TOPIC_BME280_A, 1, true, buffer); 
+    uint16_t packetIdPub1 = mqttClient.publish(TOPIC, 1, true, buffer); 
                                
-    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i ", TOPIC_BME280_A, packetIdPub1);
+    Serial.printf("Publishing on topic %s at QoS 1, packetId: %i ", TOPIC, packetIdPub1);
     Serial.printf("Message: %s \n", buffer);
   }
 }
